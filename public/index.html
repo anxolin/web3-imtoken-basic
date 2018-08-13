@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Im token test</title>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+  <style>
+      .error {
+        color: brown;
+      }
+      .message {
+        color: gray;
+      }
+  </style>
+</head>
+<body class="container">
+  <h1>Web3 test</h1>
+
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>          
+          <tr><td>Account</td><td id="td-account"></td></tr>
+          <tr><td>API</td><td id="td-api"></td></tr>
+          <tr><td>Node</td><td id="td-node"></td></tr>
+          <tr><td>Nertwork</td><td id="td-network"></td></tr>
+          <tr><td>Is connected?</td><td id="td-isConnected"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <a href="#" onclick="refresh()" class="btn btn-primary">Refresh</a>
+
+  <h2>Output</h2>
+  <div class="content" id="debugDiv">    
+  </div>
+  
+  <script src="https://cdn.rawgit.com/ethereum/web3.js/develop/dist/web3.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+  <!--  
+    <script src="http://localhost:1337/vorlon.js"></script>
+  -->
+  <script>
+    const WAIT_FOR_SDK_TIMEOUT = 10000
+
+    function refresh (web3) {
+      debug('Refresh', 'Refresing the values...')
+
+      $('#td-account').html(web3.eth.defaultAccount)
+      $('#td-api').html(web3.version.api)
+      web3.version.getNode((e, node) => {
+        debug('Got node', 'Node: ' + node)
+        $('#td-node').html(node)
+      })
+      web3.version.getNetwork((e, network) => {
+        debug('Got network', 'Nertwork: ' + network)
+        $('#td-network').html(network)
+      })
+      $('#td-isConnected').html(web3.isConnected())
+    }    
+
+    const originalOnError = window.onerror
+    let count = 1
+    window.onerror = function (message, source, lineno, colno, error) {
+      const stack = error.stack.replace('\n', '<br />&nbsp;&nbsp;&nbsp;&nbsp;')
+
+      $('#debugDiv').prepend(`
+      <p class="error">
+        <strong>${count}. ${message}</strong>
+        <br />
+        ${stack}
+      </p>
+      <hr />
+      `)
+      count++
+    }
+
+    function debug (title, content) {
+      $('#debugDiv').prepend(`
+      <p class="message">
+        <strong>${count}. ${title}</strong>
+        <br />
+        ${content}
+      </p>
+      <hr />
+      `)
+      count++
+    }
+    
+    debug('Init app', 'Initializing app...')
+    const imtokenSdkReady = !!window.imToken
+    const web3Ready = typeof web3 !== 'undefined'
+    if (web3Ready || imtokenSdkReady) {
+      debug('SDK Ready', 'SDK Ready from start')
+      console.log({ web3Ready, imtokenSdkReady })
+      web3 = new Web3(web3.currentProvider);
+      refresh(web3)
+    } else {
+      debug('SDK not Ready', 'SDK is not ready yet. Waiting for sdkReady event')
+      const timeout = setTimeout(() => {
+        throw new Error(`The web3 was not injected within ${WAIT_FOR_SDK_TIMEOUT / 1000}s`)
+      }, WAIT_FOR_SDK_TIMEOUT)
+      
+      window.addEventListener('sdkReady', () => {
+        clearTimeout(timeout)
+        debug('SDK Ready', 'SDK is now ready')
+        web3 = new Web3(web3.currentProvider);
+        refresh(web3)
+      })
+    }
+
+  </script>
+</body>
+</html>

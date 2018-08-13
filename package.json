@@ -1,0 +1,14 @@
+{
+  "name": "web3-imtoken-basic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/dev-server.js"
+  },
+  "author": "Angel Rodriguez <anxolin@gmail.com> (https://github.com/anxolin)",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.24.6"
+  }
+}
